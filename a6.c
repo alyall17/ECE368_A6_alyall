@@ -17,23 +17,70 @@ typedef struct treeNode{
 
 // Creates new leaf node
 treeNode* createLeaf(int label, int width, int height){
-
+    treeNode* new = (treeNode*)malloc(sizeof(treeNode));
+    new->leaf = 1;
+    new->label = label;
+    new->width = width;
+    new->height = height;
+    new->cut = '\0';
+    new->x = 0;
+    new->y = 0;
+    new->left = NULL;
+    new->right = NULL;
+    return new;
 }
 
 // Creates new internal node
 treeNode* createInternal(char cut, treeNode* left, treeNode* right){
-
+    treeNode* new = (treeNode*)malloc(sizeof(treeNode));
+    new->leaf = 0;
+    new->label = -1;
+    new->cut = cut;
+    new->left = left;
+    new->right = right;
+    // Compute dimensions of enclosing room based on cut types
+    if(cut == 'H'){
+        new->width = left->width > right->width ? left->width : left->right;
+        new->height = left->height + right->height;
+    }
+    else if(cut == 'V'){
+        new->width = left->width + right->width;
+        new->height = left->height > right->height ? left->height : right->height;
+    }
+    new->x = 0;
+    new->y = 0;
+    return new;
 }
 
 // Build binary tree from a post-order input file
 treeNode* buildTree(FILE* infile){
     char line[100];
     treeNode* stack[500]; // Stack to help build the tree
+    int top = -1;
+
+    while(fgets(line, sizeof(line), infile)){
+        if(line[0] == 'H' || line[0] == 'V'){
+            // Internal node
+            treeNode* right = stack[top--];
+            treeNode* left = stack[top--];
+            stack[++top] = createInternal(line[0], left, right);
+        }
+        else{
+            // Leaf node
+            int label;
+            int width;
+            int height;
+            sscanf(line, "%d(%d,%d)", &label, &width, &height);
+            stack[++top] = createLeaf(label, width, height);
+        }
+    }
+    // The root of the tree is the last element in the stack
+    return stack[top];
 }
 
 // Pre-order traversal to write to the first output file
 void preOrder(treeNode* root, FILE* outfile){
-
+    
 }
 
 // Post-order traversal to compute and write dimensions
