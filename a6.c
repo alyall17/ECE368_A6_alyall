@@ -80,22 +80,59 @@ treeNode* buildTree(FILE* infile){
 
 // Pre-order traversal to write to the first output file
 void preOrder(treeNode* root, FILE* outfile){
-    
+    if(root == NULL) return;
+    if(root->leaf){
+        fprintf(outfile, "%d(%d,%d)\n", root->label, root->width, root->height);
+    }
+    else{
+        fprintf(outfile, "%c\n", root->cut);
+    }
+    preOrder(root->left, outfile);
+    preOrder(root->right, outfile);
 }
 
 // Post-order traversal to compute and write dimensions
 void postOrderDimensions(treeNode* root, FILE* outfile){
-
+    if(root == NULL) return;
+    postOrderDimensions(root->left, outfile);
+    postOrderDimensions(root->right, outfile);
+    if(root->leaf){
+        fprintf(outfile, "%d(%d,%d)\n", root->label, root->width, root->height);
+    }
+    else{
+        fprintf(outfile, "%d(%d,%d)\n", root->cut, root->width, root->height);
+    }
 }
 
 // Post-order traversal to compute and write coordinates to third output file
 void postOrderCoordinates(treeNode* root, int x, int y, FILE* outfile){
+    if(root == NULL) return;
 
+    // Assign the current coordinates to the root
+    root->x = x;
+    root->y = y;
+
+    if(root->leaf){
+        fprintf(outfile, "%d((%d,%d)(%d,%d))\n", root->label, root->width, root->height, root->x, root->y);
+    }
+    else{
+        if(root->cut == 'H'){
+            postOrderCoordinates(root->left, x, y + root->right->height, outfile);
+            postOrderCoordinates(root->right, x, y, outfile);
+        }
+        else if(root->cut == 'V'){
+            postOrderCoordinates(root->left, x, y, outfile);
+            postOrderCoordinates(root->right, x + root->left->height, y, outfile);
+        }
+    }
 }
 
 // Free all allocated memory in the tree
 void freeTree(treeNode* root){
-
+    if(root == NULL) return;
+    freeTree(root->left);
+    freeTree(root->right);
+    free(root);
 }
 
 // Main function
