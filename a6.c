@@ -11,8 +11,8 @@ typedef struct treeNode{
     char cut; // 'H' for horizontal cut, 'V' for vertical cut (internal nodes)
     int x; // X-coordinate of bottom left corner
     int y; // Y-coordinate of bottom left corner
-    treeNode* left; // Left child
-    treeNode* right; // Right child
+    struct treeNode* left; // Left child
+    struct treeNode* right; // Right child
 }treeNode;
 
 // Creates new leaf node
@@ -40,7 +40,7 @@ treeNode* createInternal(char cut, treeNode* left, treeNode* right){
     new->right = right;
     // Compute dimensions of enclosing room based on cut types
     if(cut == 'H'){
-        new->width = left->width > right->width ? left->width : left->right;
+        new->width = left->width > right->width ? left->width : right->width;
         new->height = left->height + right->height;
     }
     else if(cut == 'V'){
@@ -137,5 +137,43 @@ void freeTree(treeNode* root){
 
 // Main function
 int main(int argc, char* argv[]){
+    if(argc != 5){
+        return 1;
+    }
 
+    // Open the input file
+    FILE* infile = fopen(argv[1], "r");
+    if(!infile){
+        return 1;
+    }
+
+    // Build the tree from the input file
+    treeNode* root = buildTree(infile);
+    fclose(infile);
+
+    // Open the output files
+    FILE* outfile1 = fopen(argv[2], "w");
+    FILE* outfile2 = fopen(argv[3], "w");
+    FILE* outfile3 = fopen(argv[4], "w");
+
+    if(!outfile1 || !outfile2 || !outfile3){
+        return 1;
+    }
+
+    // Write the pre-order traversal to the first output file
+    preOrder(root, outfile1);
+    fclose(outfile1);
+
+    // Write the dimensions of the rooms in post-order to the second output file
+    postOrderDimensions(root, outfile2);
+    fclose(outfile2);
+
+    // Write the coordinates of the blocks in post-order to the third output file
+    postOrderCoordinates(root, 0, 0, outfile3);
+    fclose(outfile3);
+
+    // Free memory
+    freeTree(root);
+
+    return 0;
 }
