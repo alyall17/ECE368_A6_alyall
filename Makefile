@@ -17,5 +17,11 @@ a6: $(OBJS)
 run: a6
 	./a6
 
+test3: a6
+	./a6 3.po out3_1 out3_2 out3_3
+	diff out3_1 examples/3.pr
+	diff out3_2 examples/3.pck
+	diff out3_3 examples/3.dim
+
 clean: # remove all machine generated files
 	rm -f a6 *.o output* *~
