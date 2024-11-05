@@ -24,4 +24,4 @@ test3: a6
 	diff out3_3 examples/3.pck
 
 clean: # remove all machine generated files
-	rm -f a6 *.o output* *~
+	rm -f a6 *.o out* *~
