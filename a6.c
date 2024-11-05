@@ -55,7 +55,7 @@ treeNode* createInternal(char cut, treeNode* left, treeNode* right){
 // Build binary tree from a post-order input file
 treeNode* buildTree(FILE* infile){
     char line[100];
-    treeNode* stack[500]; // Stack to help build the tree
+    treeNode* stack[500]; // Stack to help build the tree, don't need outside of this function
     int top = -1;
 
     while(fgets(line, sizeof(line), infile)){
@@ -122,7 +122,7 @@ void postOrderCoordinates(treeNode* root, int x, int y, FILE* outfile){
         }
         else if(root->cut == 'V'){
             postOrderCoordinates(root->left, x, y, outfile);
-            postOrderCoordinates(root->right, x + root->left->height, y, outfile);
+            postOrderCoordinates(root->right, x + root->left->width, y, outfile);
         }
     }
 }
