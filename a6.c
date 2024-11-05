@@ -15,9 +15,11 @@ typedef struct treeNode{
     struct treeNode* right; // Right child
 }treeNode;
 
-// Creates new leaf node
+// Creates and returns new leaf node (block)
 treeNode* createLeaf(int label, int width, int height){
-    treeNode* new = (treeNode*)malloc(sizeof(treeNode));
+    treeNode* new = (treeNode*)malloc(sizeof(treeNode)); // Allocate node memory
+
+    // Initialize with appropriate data
     new->leaf = 1;
     new->label = label;
     new->width = width;
@@ -27,44 +29,51 @@ treeNode* createLeaf(int label, int width, int height){
     new->y = 0;
     new->left = NULL;
     new->right = NULL;
+
     return new;
 }
 
-// Creates new internal node
+// Creates and returns a new internal node (a cut)
 treeNode* createInternal(char cut, treeNode* left, treeNode* right){
-    treeNode* new = (treeNode*)malloc(sizeof(treeNode));
+    treeNode* new = (treeNode*)malloc(sizeof(treeNode)); // Allocate memory
+
+    // Initialize with appropriate data
     new->leaf = 0;
     new->label = -1;
     new->cut = cut;
     new->left = left;
     new->right = right;
-    // Compute dimensions of enclosing room based on cut types
-    if(cut == 'H'){
+
+    // Compute dimensions (update height and width) of enclosing room based on cut types
+    if(cut == 'H'){ // Horizontal cut -- creates top and bottom blocks
         new->width = left->width > right->width ? left->width : right->width;
         new->height = left->height + right->height;
     }
-    else if(cut == 'V'){
+    else if(cut == 'V'){ // Vertical cut -- creates left and right blocks
         new->width = left->width + right->width;
         new->height = left->height > right->height ? left->height : right->height;
     }
-    new->x = 0;
-    new->y = 0;
+    new->x = 0; // Initialize x-coordinate
+    new->y = 0; // Initialize y-coordinate
     return new;
 }
 
-// Build binary tree from a post-order input file
+// Build binary tree from a post-order input file containing either leaf or internal blocks
 treeNode* buildTree(FILE* infile){
-    char line[100];
+    char line[100]; // Buffer for storing file line
     treeNode* stack[500]; // Stack to help build the tree, don't need outside of this function
-    int top = -1;
+    int top = -1; // Stack pointer
 
+    // Read each line from the input file and create corresponding node
     while(fgets(line, sizeof(line), infile)){
+        // For internal nodes, pop right and left child from stack and push new node to stack
         if(line[0] == 'H' || line[0] == 'V'){
             // Internal node
             treeNode* right = stack[top--];
             treeNode* left = stack[top--];
             stack[++top] = createInternal(line[0], left, right);
         }
+        // For leaf nodes, parse label, width, and height and add new node to stack
         else{
             // Leaf node
             int label;
@@ -78,24 +87,32 @@ treeNode* buildTree(FILE* infile){
     return stack[top];
 }
 
-// Pre-order traversal to write to the first output file
+// Pre-order traversal to write tree structure to the first output file
 void preOrder(treeNode* root, FILE* outfile){
-    if(root == NULL) return;
+    if(root == NULL) return; // Base case -- empty node
+
+    // Write block label and dimensions for leaf and cut type for internal
     if(root->leaf){
         fprintf(outfile, "%d(%d,%d)\n", root->label, root->width, root->height);
     }
     else{
         fprintf(outfile, "%c\n", root->cut);
     }
+
+    // Traverse left and right subtrees
     preOrder(root->left, outfile);
     preOrder(root->right, outfile);
 }
 
-// Post-order traversal to compute and write dimensions
+// Post-order traversal to compute and write dimensions of each block and cut to the second output file
 void postOrderDimensions(treeNode* root, FILE* outfile){
-    if(root == NULL) return;
+    if(root == NULL) return; // Base case -- empty node
+
+    // Traverse left and right subtrees
     postOrderDimensions(root->left, outfile);
     postOrderDimensions(root->right, outfile);
+
+    // Write block dimensions for leaf, and cut type and block dimensions for internal
     if(root->leaf){
         fprintf(outfile, "%d(%d,%d)\n", root->label, root->width, root->height);
     }
@@ -112,14 +129,18 @@ void postOrderCoordinates(treeNode* root, int x, int y, FILE* outfile){
     root->x = x;
     root->y = y;
 
+    // If leaf, write the block's coordinates
     if(root->leaf){
         fprintf(outfile, "%d((%d,%d)(%d,%d))\n", root->label, root->width, root->height, root->x, root->y);
     }
+    // If internal (cut), calculate the coordinates for children
     else{
+        // Left child goes above right for horizontal cuts
         if(root->cut == 'H'){
             postOrderCoordinates(root->left, x, y + root->right->height, outfile);
             postOrderCoordinates(root->right, x, y, outfile);
         }
+        // Left child goes to the left of right child for vertical cuts
         else if(root->cut == 'V'){
             postOrderCoordinates(root->left, x, y, outfile);
             postOrderCoordinates(root->right, x + root->left->width, y, outfile);
