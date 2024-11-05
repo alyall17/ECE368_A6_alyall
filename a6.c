@@ -100,7 +100,7 @@ void postOrderDimensions(treeNode* root, FILE* outfile){
         fprintf(outfile, "%d(%d,%d)\n", root->label, root->width, root->height);
     }
     else{
-        fprintf(outfile, "%d(%d,%d)\n", root->cut, root->width, root->height);
+        fprintf(outfile, "%c(%d,%d)\n", root->cut, root->width, root->height);
     }
 }
 
